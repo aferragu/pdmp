@@ -323,6 +323,30 @@
   
 \end{frame}
 
+\begin{frame}{Markov Property and Non-Explosion}
+
+  \begin{block}{Markov property}
+    The semigroup property of $\varphi$ ensures the process is
+    \textbf{strong Markov}: the distribution of the next jump time
+    depends only on the current state $X_t$, not on the history.
+  \end{block}
+
+  \bigskip
+  \begin{block}{Non-explosion (Davis, Assumption~3.1)}
+    Require $E[N_t] < \infty$ for all $t \geq 0$, equivalently
+    $T_n \to \infty$ a.s., so the process does not accumulate
+    infinitely many jumps in finite time.
+  \end{block}
+
+  \bigskip
+  \begin{alertblock}{Remark}
+    Non-explosion is not automatic --- it must be verified for each
+    model. For the TCP/IP example, it follows from Foster's criterion
+    applied later.
+  \end{alertblock}
+
+\end{frame}
+
 \begin{frame}{Example: TCP/IP Congestion Control}
 
   \begin{block}{Informal description}
@@ -405,46 +429,6 @@
 
 \end{frame}
 
-
-%%%% THIS IS FALSE!!!!
-% \begin{frame}{TCP/IP: Non-Explosion}
-
-%   After the $k$-th jump the rate is $x_k = x_0 / 2^k$. Let $S_k$ denote
-%   the $k$-th inter-jump time starting from $x_k$, and note that $S_k$ are
-%   independent by the Markov property.
-
-%   \vfill
-%   Since $\phi(t,x_k) = x_k + ct$, the integrated hazard is exact:
-%   \[
-%     \Lambda(t,x_k) = \int_0^t \alpha(x_k + cs)\,\mathrm{d}s
-%     = \alpha x_k t + \frac{\alpha c}{2}t^2,
-%   \]
-%   so:
-%   \[
-%     E[S_k] = \int_0^\infty \exp\!\left(-\alpha x_k t - \frac{\alpha c}{2}t^2\right)\mathrm{d}t.
-%   \]
-
-%   \vfill
-
-% \end{frame}
-
-% \begin{frame}{TCP/IP: Non-Explosion}
-
-%   Since $x_k = x_0/2^k \to 0$, by monotone convergence:
-%   \[
-%     E[S_k] \;\xrightarrow{k\to\infty}\; \int_0^\infty \exp\!\left(-\frac{\alpha c}{2}t^2\right)\mathrm{d}t
-%     = \sqrt{\frac{\pi}{2\alpha c}} \;>\; 0.
-%   \]
-
-%   \vfill
-
-%   \begin{block}{Non-explosion}
-%     Since $S_k \geq 0$ are independent and $E[S_k] \to \sqrt{\pi/(2\alpha c)} > 0$,
-%     we have $\sum_k E[S_k] = \infty$, hence $\sum_k S_k = \infty$ a.s.
-%     Therefore $T_n \to \infty$ a.s.\ and the process does not explode.
-%   \end{block}
-
-% \end{frame}
 
 
 % ============================================================
@@ -731,8 +715,8 @@
     A PDMP with semigroup $(P_t)$ is \textbf{ergodic} if it admits a
     unique invariant probability measure $\pi$, satisfying
     \[
-      \int_E P_t f\,\mathrm{d}\pi = \int_E f\,\mathrm{d}\pi
-      \quad \text{for all bounded measurable } f,\ t \geq 0,
+      \int_E P_t \psi\,\mathrm{d}\pi = \int_E \psi\,\mathrm{d}\pi
+      \quad \text{for all bounded measurable } \psi,\ t \geq 0,
     \]
     and for all initial conditions $x \in E$:
     \[
@@ -900,8 +884,8 @@
 % ============================================================
 \begin{frame}{Harris Recurrence: Connection to Ergodicity}
 
-  \begin{block}{Harris ergodic theorem, Meyn \& Tweedie (1993)
-                Theorem~13.0.1}
+  \begin{block}{Harris Ergodic Theorem}
+    \textit{Meyn \& Tweedie (1993), Theorem~13.0.1.}\\[4pt]
     A $\nu$-irreducible, Harris recurrent, positively recurrent PDMP
     admits a unique invariant measure $\pi$ and satisfies
     \[
@@ -1089,9 +1073,8 @@
     \[
       E_x[V(X_{\tau_C})] - V(x)
       = E_x\!\left[\int_0^{\tau_C} \mathcal{A}V(X_s)\,\mathrm{d}s\right]
-      \leq -\varepsilon\, E_x[\tau_C] + b\, E_x[\tau_C \wedge \sigma_C],
+      \leq -\varepsilon\, E_x[\tau_C] + b.
     \]
-    where $\sigma_C$ is the first \emph{entry} time into $C$.
     Since $V \geq 1$ and $E_x[V(X_{\tau_C})] \geq 1$:
     \[
       \varepsilon\, E_x[\tau_C] \leq V(x) - 1 + b,
@@ -1309,13 +1292,13 @@
   \end{block}
 
   \bigskip
-  \textbf{Applying Foster's criterion.} Choose
-  $C = \left[0,\, \sqrt{\frac{2c}{\alpha}} + \delta\right]$
-  for any $\delta > 0$. Then:
+  \textbf{Applying Foster's criterion.} Choose $\delta > 0$ small
+  and set $C = \left[\delta,\, \sqrt{\frac{2c}{\alpha}} + \delta\right]$.
+  Then:
 
   \begin{itemize}
     \setlength\itemsep{6pt}
-    \item \textbf{Outside $C$:} for $x > \sqrt{2c/\alpha} + \delta$,
+    \item \textbf{Outside $C$, $x > \sqrt{2c/\alpha} + \delta$:}
           \[
             \mathcal{A}V(x) = c - \frac{\alpha x^2}{2}
             \leq c - \frac{\alpha}{2}\left(\sqrt{\frac{2c}{\alpha}}
@@ -1425,6 +1408,50 @@
 
 
 % ============================================================
+\begin{frame}{Summary}
+
+  \begin{columns}[T]
+    \begin{column}{0.48\textwidth}
+      \textbf{Foundations (Davis 1984)}
+      \begin{itemize}
+        \setlength\itemsep{6pt}
+        \item PDMPs: deterministic flow punctuated by
+              random jumps, characterised by $(\varphi, \lambda, Q)$.
+        \item Extended generator $\mathcal{A}$: ODE drift
+              $+$ non-local jump term.
+        \item Kolmogorov forward equation: hyperbolic PDE
+              $+$ integral operator.
+        \item Dynkin formula: bridge between $\mathcal{A}$
+              and martingales.
+      \end{itemize}
+    \end{column}
+
+    \begin{column}{0.48\textwidth}
+      \textbf{Ergodicity}
+      \begin{itemize}
+        \setlength\itemsep{6pt}
+        \item Irreducibility $+$ Harris recurrence $+$
+              positive recurrence $\implies$ ergodicity.
+        \item Foster's criterion: sufficient condition
+              via $\mathcal{A}V \leq -\varepsilon + b\mathbf{1}_C$.
+        \item Lyapunov criterion: geometric ergodicity
+              via $\mathcal{A}V \leq -cV + b\mathbf{1}_C$.
+      \end{itemize}
+
+      \bigskip
+      \textbf{TCP/IP example}
+      \begin{itemize}
+        \setlength\itemsep{6pt}
+        \item Ergodicity verified via Foster's criterion.
+        \item $E_\pi[X^2] = 2c/\alpha$ from the generator.
+        \item $E_\pi[X] \leq \sqrt{2c/\alpha}$ via Jensen.
+      \end{itemize}
+    \end{column}
+  \end{columns}
+
+\end{frame}
+
+% ============================================================
 \begin{frame}[allowframebreaks]{References}
   
   
@@ -1446,7 +1473,7 @@
           Stochastics \textbf{14}:165--208, 1985.
     \item F.\ Dufour, O.\,L.\,V.\ Costa.
           \textit{Stability of piecewise deterministic Markov processes.}
-          SIAM J.\ Control Optim.\ \textbf{37}:1483--1502, 2002.
+          SIAM J.\ Control Optim.\ \textbf{37}(5):1483--1502, 1999.
     \item A.\ Durmus, A.\ Guillin, P.\ Monmarche.
           \textit{Piecewise deterministic Markov processes and their invariant measures.}
           Ann.\ Inst.\ H.\ Poincar\'e \textbf{57}(3), 2021.
