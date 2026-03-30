@@ -1,0 +1,1080 @@
+%% ============================================================
+%%  Battery-Buffered EV Charging Station — Beamer Presentation
+%% ============================================================
+\documentclass[aspectratio=169]{beamer}
+
+\usepackage[utf8]{inputenc}
+%\usepackage{emoji}
+
+\usepackage{amsmath}
+\usepackage{graphicx}
+\usepackage[T1]{fontenc}
+\usepackage{libertine}
+\usepackage{array}
+\usepackage{marvosym}
+\usepackage{bm}
+\usepackage{booktabs}
+\usepackage{xcolor}
+
+\usepackage{pgfplots}
+\usepackage{tikz}
+\usetikzlibrary{automata, arrows, positioning, calc, external, babel, backgrounds, matrix, shapes, shadings}
+\usepgfplotslibrary{fillbetween}
+
+
+%%natbib conf
+\usepackage[square,authoryear]{natbib}
+\renewcommand{\cite}{\citep}
+\renewcommand{\bibfont}{\small}
+\bibliographystyle{abbrvnat} 
+
+\newcommand{\R}{\mathbb{R}}
+\newcommand{\brackets}[2]{\left\langle#1,#2\right\rangle}
+\newcommand{\ind}[1]{\mathbf{1}_{\left\{#1\right\}}}
+\newcommand{\mgs}{M_Y}       % MGF of Y
+\newcommand{\fhat}{\hat{f}_0}
+
+\newcommand{\graphheight}{7cm}
+\newcommand{\graphwidth}{11cm}
+
+\newcommand{\E}[1]{E\left[#1 \right]}
+\renewcommand{\phi}{\varphi}
+
+% \definecolor{azulcito}{RGB}{20,70,140}
+\definecolor{azulcito}{RGB}{0,90,150}
+\definecolor{verdecito}{RGB}{90,150,0}
+\definecolor{rojito}{RGB}{150,0,90}
+\definecolor{violetita}{RGB}{150,20,150}
+
+
+\setbeamercolor*{structure}{fg=azulcito,bg=azulcito!20!white}
+\setbeamercolor*{alerted text}{fg=azulcito}
+
+  \setbeamercolor{block title}{fg=azulcito,bg=azulcito!20!white}
+  \setbeamercolor{block body}{fg=black,bg=azulcito!10!white}
+  
+\beamertemplatenavigationsymbolsempty
+
+\setbeamercolor*{author in head/foot}{fg=azulcito,bg=azulcito!15!white}
+\setbeamercolor*{title in head/foot}{fg=azulcito,bg=azulcito!15!white}
+\setbeamercolor*{date in head/foot}{fg=azulcito,bg=azulcito!15!white}
+
+% Pgfplots
+\pgfplotsset{width=\graphwidth, height = \graphheight, grid style = {dashed, gray}, every tick label/.append style = {font=\footnotesize}, compat=1.18, legend style={font=\footnotesize, draw=none, fill=none}, every axis/.append style={label style={font=\footnotesize}}}
+
+\tikzset{>=stealth}
+
+\newtheorem{proposition}{Proposition}
+\newtheorem{remark}{Remark}
+
+\defbeamertemplate*{footline}{mitema}
+{
+  \leavevmode%
+  \hbox{%
+  \begin{beamercolorbox}[wd=.25\paperwidth,ht=2.25ex,dp=1ex,left]{author in head/foot}%
+    \usebeamerfont{author in head/foot}\hspace*{2ex}\insertshortauthor
+  \end{beamercolorbox}%
+  \begin{beamercolorbox}[wd=.5\paperwidth,ht=2.25ex,dp=1ex,center]{title in head/foot}%
+    \usebeamerfont{date in head/foot}\insertshortdate{}
+  \end{beamercolorbox}%
+  \begin{beamercolorbox}[wd=.25\paperwidth,ht=2.25ex,dp=1ex,right]{date in head/foot}%
+    \insertframenumber{}/\inserttotalframenumber\hspace*{2em} 
+  \end{beamercolorbox}}%
+ \vskip0pt%
+}
+
+
+\setbeamercolor{blocky}{fg=azulcito,bg=azulcito!15!white}
+\setbeamercolor{blocky2}{fg=black,bg=azulcito!10!white}
+
+\defbeamertemplate*{title page}{customized}[1][]
+{
+{\flushright
+  \begin{beamercolorbox}[wd=\paperwidth,sep=1em,right,rightskip=1.5em]{blocky}%
+    \usebeamerfont{title}{\huge \inserttitle}\par \bigskip
+
+    \usebeamerfont{subtitle}{\large \insertsubtitle}\par
+  \end{beamercolorbox}%
+  \vfill
+    \usebeamerfont{author}{\Large \insertauthor}\par \vspace{1em}
+      \usebeamerfont{institute}{\large \insertinstitute}\par
+  
+  
+  \vfill
+  \usebeamerfont{date}{\insertdate}\par
+  %\usebeamercolor[fg]{titlegraphic}\inserttitlegraphic
+  }
+}
+
+\usefonttheme[onlymath]{serif}
+
+%% ============================================================
+\title[Battery-Buffered EV Charging]{%
+  Stationary Analysis of a Battery-Buffered EV Charging Station}
+\subtitle{A Piecewise-Deterministic Approach}
+
+\author[A. Ferrahit]{Andres Ferragut}
+\institute[Universidad ORT Uruguay]{Universidad ORT Uruguay}
+\date{}
+
+%% ============================================================
+\begin{document}
+
+\begin{frame}[plain]
+  \titlepage
+\end{frame}
+
+%% ============================================================
+\begin{frame}{Outline}
+  \tableofcontents
+\end{frame}
+
+%% ============================================================
+%% SECTION 1 — MODEL
+%% ============================================================
+\section{Model}
+
+\begin{frame}{System Description}
+
+\begin{columns}[T]
+\begin{column}{0.52\textwidth}
+\textbf{Physical setup}
+\begin{itemize}
+  \item One charging station, one charger
+  \item Battery buffer of capacity $B \in (0,\infty]$
+  \item Grid connection: idle charge rate $p_0$,
+        service grid rate $p_1 > p_0$
+  \item Fast charge rate $p_2 > p_1$ (grid + battery)
+  \item Net battery discharge rate $c = p_2 - p_1$
+\end{itemize}
+\medskip
+\textbf{Customers}
+\begin{itemize}
+  \item Cars arrive Poisson($\lambda$)
+  \item Energy demand $Y \sim F$, mean $1/\mu$
+  \item \textbf{Loss system}: car arriving when busy is turned away
+\end{itemize}
+\end{column}
+\begin{column}{0.44\textwidth}
+\begin{tikzpicture}[scale=0.9,
+  box/.style={draw,rounded corners,fill=azulcito,
+              minimum width=1.8cm,minimum height=0.7cm,
+              font=\small},
+  arr/.style={-{stealth},thick,azulcito}]
+  % Grid
+  \node[box] (grid) at (0,3.2) {Grid $p_1$};
+  % Battery
+  \node[box,fill=yellow] (bat) at (2.8,3.2) {Battery $B$};
+  % Charger
+  \node[box,fill=green!15] (ch) at (1.4,1.6) {Charger $p_2$};
+  % Car
+  \node[box,fill=red!10] (car) at (1.4,0) {Car ($Y$)};
+  % Arrows
+  \draw[arr] (grid) -- node[above,font=\tiny]{$p_1$} (ch);
+  \draw[arr] (bat)  -- node[above,font=\tiny]{$p_2{-}p_1$} (ch);
+  \draw[arr] (ch)   -- node[right,font=\tiny]{$p_2$} (car);
+  % Idle recharge
+  \draw[arr,verdecito,dashed] (grid) to[bend right=40]
+    node[left,font=\tiny]{$p_0$ (idle)} (bat);
+  % Arrivals
+  \draw[arr,rojito] (-1.2,0) -- node[below,font=\tiny]{$\lambda$} (car);
+\end{tikzpicture}
+\end{column}
+\end{columns}
+\end{frame}
+
+%% ----
+\begin{frame}{Two-Phase Service}
+
+\begin{block}{Service mechanism}
+When a car is present, service proceeds in at most two phases:
+\end{block}
+
+\medskip
+\begin{columns}[T]
+\begin{column}{0.46\textwidth}
+  \textbf{Phase 1 — Fast charging} ($x > 0$)
+  \begin{itemize}
+    \item Battery non-empty
+    \item Grid $+$ battery supply car at rate $p_2$
+    \item Battery depletes: $\dot{x} = -c$
+  \end{itemize}
+\end{column}
+\begin{column}{0.46\textwidth}
+  \textbf{Phase 2 — Slow charging} ($x = 0$)
+  \begin{itemize}
+    \item Battery empty
+    \item Grid alone supplies car at rate $p_1 < p_2$
+    \item Battery stays at 0: $\dot{x} = 0$
+  \end{itemize}
+\end{column}
+\end{columns}
+
+\bigskip
+\begin{alertblock}{Key observation (memoryless demands)}
+  If $Y \sim \mathrm{Exp}(\mu)$, residual demand at any time is again
+  $\mathrm{Exp}(\mu)$.  The departure rate is \textbf{Markovian}:
+  \[
+    \delta(x) = \begin{cases} \mu p_2 & x > 0 \\ \mu p_1 & x = 0 \end{cases}
+  \]
+  For \textbf{general} $F$, the residual demand must be tracked explicitly.
+\end{alertblock}
+\end{frame}
+
+%% ----
+\begin{frame}{The PDMP Formulation}
+
+\begin{definition}
+  The process $Z(t)=(n(t),x(t))$ on $E=\{0,1\}\times[0,B]$ is a
+  \textbf{piecewise-deterministic Markov process} (Davis, 1984)
+  with:
+\end{definition}
+
+\medskip
+\begin{columns}[T]
+\begin{column}{0.30\textwidth}
+  \textbf{Flow} $\dot{x}=r(n,x)$:
+  \[
+  r(n,x)=\begin{cases}
+  +p_0 & n{=}0,\,x{<}B \\
+  0    & n{=}0,\,x{=}B \\
+  -c   & n{=}1,\,x{>}0 \\
+  0    & n{=}1,\,x{=}0
+  \end{cases}
+  \]
+\end{column}
+\begin{column}{0.32\textwidth}
+  \textbf{Jump rate} $\lambda(n,x)$:
+  \[
+  \lambda(n,x)=\begin{cases}
+  \lambda   & n=0 \\[3pt]
+  \mu p_2   & n{=}1,\,x{>}0 \\[3pt]
+  \mu p_1   & n{=}1,\,x{=}0
+  \end{cases}
+  \]
+\end{column}
+\begin{column}{0.30\textwidth}
+  \textbf{Kernel} $Q$:
+  \[
+  Q\bigl((n,x),\cdot\bigr) = \delta_{(1-n,\,x)}
+  \]
+  (only $n$ flips; $x$ unchanged at jumps)
+\end{column}
+\end{columns}
+
+\medskip\medskip
+\begin{exampleblock}{Boundaries}
+  \begin{itemize}
+    \item $x=0$, $n=1$: reflecting (slow-charging mode, $\delta$ switches to $\mu p_1$)
+    \item $x=B$, $n=0$: reflecting (battery full, $\dot{x}=0$)
+    \item No mass at $(n=0,x=0)$ or $(n=1,x=B)$
+  \end{itemize}
+\end{exampleblock}
+\end{frame}
+
+%% ============================================================
+%% SECTION 2 — EXPONENTIAL, B=Inf
+%% ============================================================
+\section{Exponential Demands, $B=\infty$}
+
+\begin{frame}{State Space and Stationary Distribution Structure}
+
+For $B=\infty$:
+\begin{itemize}
+  \item State space $E = \{0,1\}\times[0,\infty)$; \textbf{no upper boundary}
+  \item No point mass $\pi_0^{(B)}$
+  \item Stationary distribution: densities $f_0(x)$, $f_1(x)$ on $(0,\infty)$
+    plus point mass $\pi_1^{(0)}=\Pr(n=1,x=0)$
+\end{itemize}
+
+\medskip
+\begin{alertblock}{Stability is not automatic}
+  For $B<\infty$ the state space is compact $\Rightarrow$ stationary distribution always exists.\\[4pt]
+  For $B=\infty$ the battery can drift to $+\infty$: stationarity requires
+  \[
+    \underbrace{\frac{p_0}{\lambda}}_{\text{mean energy added per cycle}}
+    \;<\;
+    \underbrace{\frac{c}{\mu p_2}}_{\text{mean energy removed per cycle}}
+  \]
+\end{alertblock}
+\end{frame}
+
+%% ----
+\begin{frame}{Stability Condition}
+
+\begin{theorem}[Stability, $B=\infty$]
+  Define the \textbf{key eigenvalue}
+  \[
+    \theta_1 := \frac{\mu p_2}{c} - \frac{\lambda}{p_0}.
+  \]
+  A proper stationary distribution exists if and only if
+  \[
+    \boxed{\theta_1 < 0 \quad\iff\quad \lambda > \lambda_c := \frac{\mu p_2 p_0}{c}}
+  \]
+\end{theorem}
+
+\medskip
+\begin{columns}[T]
+\begin{column}{0.48\textwidth}
+  \textbf{Regime interpretation:}
+  \begin{itemize}
+    \item $\theta_1>0$: battery drifts $\to\infty$\\
+          (station too lightly loaded)
+    \item $\theta_1<0$: stable, battery bounded
+    \item $\theta_1=0$: critical; uniform density
+  \end{itemize}
+\end{column}
+\begin{column}{0.44\textwidth}
+  \textbf{Physical meaning:}\\[4pt]
+  \small
+  The station must be \emph{busy enough} to drain
+  what the grid charges into the battery.
+  $\lambda_c$ balances mean energy input and output
+  per cycle.
+\end{column}
+\end{columns}
+
+\medskip
+\begin{exampleblock}{}
+  \small
+  Proved via a Foster--Lyapunov argument on the full generator $\mathcal{L}$:
+  see the next two slides.
+\end{exampleblock}
+\end{frame}
+
+%% ----
+\begin{frame}{Proof of Stability: Finding the Lyapunov Function}
+
+The generator of $(n(t),x(t))$ acts on $V(n,x)$ as:
+\[
+  \mathcal{L}V(n,x) = r(n,x)\,\partial_x V + \lambda(n,x)\,[V(1-n,x)-V(n,x)]
+\]
+
+\textbf{First attempt:} $V(n,x)=x$.
+\[
+  \mathcal{L}V(0,x)=p_0>0,\qquad \mathcal{L}V(1,x)=-c<0.
+\]
+\alert{Fails}: drift is positive in state $n=0$ for all $x$, so no compact set can rescue it.
+
+\medskip
+\textbf{Second attempt:} $V(n,x)=x+\alpha n$, $\alpha>0$.
+\[
+  \mathcal{L}V(0,x)=p_0+\lambda\alpha>0,\qquad
+  \mathcal{L}V(1,x)=-c-\mu p_2\alpha<0.
+\]
+\alert{Still fails}: no $\alpha$ makes both simultaneously negative.
+
+\medskip
+\begin{block}{The right idea}
+  Use $V(n,x)=x+h_n$ where $h_n$ depends only on $n$ and is chosen so that
+  $\mathcal{L}V$ is the \textbf{same constant} in both states.
+  This requires solving one linear equation for the difference $h_0-h_1$.
+\end{block}
+\end{frame}
+
+%% ----
+\begin{frame}{Proof of Stability: The Corrected Lyapunov Function}
+
+\textbf{Ansatz:} $V(n,x)=x+h_n$, $h_n$ constant in $x$. Compute:
+\begin{align*}
+  \mathcal{L}V(0,x) &= p_0 + \lambda(h_1-h_0) =: -\varepsilon\\
+  \mathcal{L}V(1,x) &= -c + \mu p_2(h_0-h_1) =: -\varepsilon
+\end{align*}
+Setting $d:=h_0-h_1$ and equating the two expressions:
+\[
+  p_0 - \lambda d = -c + \mu p_2 d \quad\Rightarrow\quad
+  \boxed{d = h_0-h_1 = \frac{p_0+c}{\lambda+\mu p_2}}
+\]
+Substituting back gives the common drift value:
+\[
+  -\varepsilon = p_0 - \lambda d
+  = \frac{p_0(\lambda+\mu p_2)-\lambda(p_0+c)}{\lambda+\mu p_2}
+  = \frac{p_0\mu p_2 - \lambda c}{\lambda+\mu p_2}
+\]
+
+\begin{theorem}[Foster--Lyapunov Certificate]
+  Take $h_0=(p_0+c)/(\lambda+\mu p_2)$, $h_1=0$. Then for all $x>0$:
+  \[
+    \mathcal{L}V(n,x) = \frac{p_0\mu p_2-\lambda c}{\lambda+\mu p_2} = -\varepsilon
+  \]
+  This is a \textbf{negative constant} iff $\theta_1<0$.
+  By the Foster--Lyapunov criterion, the process is \textbf{positive recurrent}. \qed
+\end{theorem}
+
+\begin{remark}
+  The corrector $h_n$ equalizes the drifts across states by making $V$ slightly larger
+  in state $n=0$ (where the drift of $x$ is positive) to compensate.
+\end{remark}
+\end{frame}
+
+%% ----
+\begin{frame}{Balance Equations}
+
+\textbf{Interior} ($x>0$):
+\begin{align}
+  p_0\,f_0'(x) &= -\lambda\,f_0(x) + \mu p_2\,f_1(x) \tag{E0}\\[4pt]
+  -c\,f_1'(x)  &= \phantom{-}\lambda\,f_0(x) - \mu p_2\,f_1(x) \tag{E1}
+\end{align}
+
+\medskip
+\textbf{Boundary at $x=0$:}
+\[
+  p_0\,f_0(0^+) = \mu p_1\,\pi_1^{(0)} = c\,f_1(0^+)
+\]
+
+\medskip
+\begin{block}{Matrix form}
+  Writing $\mathbf{f}'=A\mathbf{f}$ with $A=\mathbf{D}^{-1}Q$,
+  $\mathbf{D}=\mathrm{diag}(p_0,-c)$, $Q$ the M/M/1/1 generator:
+  \[
+    A = \begin{pmatrix} -\lambda/p_0 & \mu p_2/p_0 \\ \lambda/c & -\mu p_2/c \end{pmatrix}
+  \]
+  Characteristic equation: $\theta(\theta - \theta_1)=0$, eigenvalues $0$ and $\theta_1$.
+\end{block}
+\end{frame}
+
+%% ----
+\begin{frame}{Solving the Balance Equations ($B=\infty$, $\theta_1<0$)}
+
+\textbf{General solution:}
+\[
+  \begin{pmatrix}f_0(x)\\f_1(x)\end{pmatrix}
+  = \alpha_0\begin{pmatrix}\mu p_2\\\lambda\end{pmatrix}
+  + \alpha_1\begin{pmatrix}c\\p_0\end{pmatrix}e^{\theta_1 x}
+\]
+
+\medskip
+\textbf{Normalizability} ($B=\infty$, $\theta_1<0$): requires $e^{\theta_1 x}\to 0$,
+but the $\alpha_0$ mode is a \emph{constant} — not integrable on $[0,\infty)$.
+\[
+  \Rightarrow \alpha_0 = 0
+\]
+
+\medskip
+\begin{theorem}[Stationary Distribution, $B=\infty$]
+  Under $\theta_1<0$, with normalization constant
+  $K_\infty = \dfrac{p_0+c}{|\theta_1|}+\dfrac{p_0 c}{\mu p_1}$:
+  \[
+    f_0(x) = \frac{c}{K_\infty}e^{\theta_1 x},\quad
+    f_1(x) = \frac{p_0}{K_\infty}e^{\theta_1 x},\quad
+    \pi_1^{(0)} = \frac{p_0 c}{\mu p_1 K_\infty}
+  \]
+\end{theorem}
+\end{frame}
+
+%% ----
+\begin{frame}{Proportionality Property}
+
+\begin{corollary}[Decoupling in the interior]
+  For all $x>0$:
+  \[
+    \frac{f_1(x)}{f_0(x)} = \frac{p_0}{c} = \text{const}
+  \]
+  The conditional probability of a car being present, \emph{given} battery level $x>0$, is constant and independent of $x$:
+  \[
+    \Pr(n=1 \mid x) = \frac{p_0}{p_0+c}, \qquad
+    \Pr(n=0 \mid x) = \frac{c}{p_0+c}
+  \]
+\end{corollary}
+
+\medskip
+\begin{exampleblock}{Interpretation}
+  The battery level and the charger occupancy are \textbf{decoupled in the interior}:
+  knowing $x$ gives no information about whether a car is being served.
+  The full distribution is characterized by the single marginal density
+  \[
+    f(x) = f_0(x)+f_1(x) = \frac{p_0+c}{K_\infty}e^{\theta_1 x}
+  \]
+\end{exampleblock}
+\end{frame}
+
+%% ============================================================
+%% SECTION 3 — EXPONENTIAL, B<Inf
+%% ============================================================
+\section{Exponential Demands, $B<\infty$}
+
+\begin{frame}{What Changes for Finite Battery}
+
+\begin{itemize}
+  \item Upper boundary $x=B$ is now a \textbf{reflecting boundary} when $n=0$
+  \item A new point mass arises: $\pi_0^{(B)} = \Pr(n=0,\,x=B)$
+  \item Stationary distribution \textbf{always exists} (compact state space)
+\end{itemize}
+
+\medskip
+\textbf{Additional boundary conditions at $x=B$:}
+\[
+  \lambda\,\pi_0^{(B)} = p_0\,f_0(B^-), \qquad
+  c\,f_1(B^-) = \lambda\,\pi_0^{(B)}
+\]
+These say: probability flux arriving at $x=B$ (from the $p_0$ drift) feeds $\pi_0^{(B)}$,
+which is drained by arrivals that immediately start discharging the battery.
+
+\medskip
+\begin{block}{Interior equations}
+  Identical to the $B=\infty$ case:
+  \[
+    p_0\,f_0'(x) = -\lambda\,f_0(x)+\mu p_2\,f_1(x), \qquad
+    -c\,f_1'(x) = \lambda\,f_0(x)-\mu p_2\,f_1(x)
+  \]
+  Same general solution; boundary conditions now determine $\alpha_0$ and $\alpha_1$.
+\end{block}
+\end{frame}
+
+%% ----
+\begin{frame}{Solving for the Stationary Distribution ($B<\infty$)}
+
+\textbf{Boundary at $x=B$:} flux condition $c\,f_1(B)=p_0\,f_0(B)$ gives
+\[
+  \alpha_0(c\lambda - p_0\mu p_2) = 0
+\]
+Since $\theta_1\neq 0 \Rightarrow c\lambda\neq p_0\mu p_2$, we again get $\alpha_0=0$.
+
+\bigskip
+\begin{theorem}[Stationary Distribution, $B<\infty$, $\theta_1\neq 0$]
+  \[
+    f_0(x)=\frac{c}{K}e^{\theta_1 x},\quad
+    f_1(x)=\frac{p_0}{K}e^{\theta_1 x},\qquad x\in(0,B)
+  \]
+  \[
+    \pi_1^{(0)}=\frac{p_0 c}{\mu p_1 K},\qquad
+    \pi_0^{(B)}=\frac{p_0 c}{\lambda K}e^{\theta_1 B}
+  \]
+  where
+  \[
+    K = \frac{p_0+c}{\theta_1}\bigl(e^{\theta_1 B}-1\bigr)
+        + \frac{p_0 c}{\mu p_1} + \frac{p_0 c}{\lambda}e^{\theta_1 B}
+  \]
+\end{theorem}
+
+\begin{remark}
+  The single-exponential form and the proportionality $f_1/f_0=p_0/c$ hold for \emph{all}
+  $\theta_1\neq 0$, whether positive or negative.
+  The $B=\infty$ case is the limit as $B\to\infty$ with $\theta_1<0$.
+\end{remark}
+\end{frame}
+
+%% ----
+\begin{frame}{Regime Diagram}
+
+\begin{columns}[T]
+\begin{column}{0.48\textwidth}
+  \textbf{Sign of $\theta_1$ governs the regime:}
+  \medskip
+  \begin{itemize}
+    \item $\theta_1>0$: density \emph{increasing} toward $B$\\
+          battery tends to be \textbf{full}\\
+          $\Rightarrow$ fast charging almost always available
+    \medskip
+    \item $\theta_1=0$: uniform density\\
+          critical balance
+    \medskip
+    \item $\theta_1<0$: density \emph{decreasing} toward 0\\
+          battery tends to be \textbf{empty}\\
+          $\Rightarrow$ slow charging prevalent; $B$ is the key lever
+  \end{itemize}
+\end{column}
+\begin{column}{0.48\textwidth}
+\begin{tikzpicture}[scale=0.85]
+  \draw[->,thick] (0,0)--(4.2,0) node[right]{$x$};
+  \draw[->,thick] (0,0)--(0,2.8) node[above]{$f(x)$};
+  % theta>0
+  \draw[verdecito,thick,domain=0:3.5,samples=60]
+    plot(\x,{0.25*exp(0.6*\x)}) node[right]{\tiny$\theta_1>0$};
+  % theta=0
+  \draw[gray!50!white,thick,dashed] (0,0.8)--(3.5,0.8) node[right]{\tiny$\theta_1=0$};
+  % theta<0
+  \draw[rojito,thick,domain=0:3.5,samples=60]
+    plot(\x,{1.8*exp(-0.7*\x)}) node[right]{\tiny$\theta_1<0$};
+  % B marker
+  \draw[dashed,gray] (3.5,0)--(3.5,2.2) node[above]{\tiny$B$};
+  \node at (1.75,-0.4) {\small battery level $x$};
+\end{tikzpicture}
+\end{column}
+\end{columns}
+\end{frame}
+
+%% ============================================================
+%% SECTION 4 — PERFORMANCE METRICS
+%% ============================================================
+\section{Performance Metrics}
+
+\begin{frame}{Blocking Probability}
+
+By \textbf{PASTA} (Poisson arrivals see time averages), arriving cars see
+the stationary distribution: $P_B = \Pr(n=1)$.
+
+\begin{theorem}[Blocking Probability]
+  \[
+    P_B = \frac{p_0}{K}\!\left[\frac{e^{\theta_1 B}-1}{\theta_1}
+          + \frac{c}{\mu p_1}\right]
+  \]
+  Limits:
+  \[
+    P_B \xrightarrow{B\to 0} \frac{\lambda}{\lambda+\mu p_1}
+    \qquad\text{(M/M/1/1 with slow rate)}
+  \]
+  \[
+    P_B \xrightarrow{B\to\infty} \frac{\lambda}{\lambda+\mu p_2}
+    \qquad\text{(M/M/1/1 with fast rate)}
+  \]
+\end{theorem}
+
+\medskip
+\begin{itemize}
+  \item Every admitted car finds $x>0$ (since $\pi_0^{(0)}=0$): \textbf{fast charging begins immediately}
+  \item The battery sees time $\pi_0^{(0)}=0$ at zero while idle: it starts charging at rate $p_0>0$ the moment a car departs
+\end{itemize}
+\end{frame}
+
+%% ----
+\begin{frame}{Battery Depletion and Charging Time}
+
+\begin{theorem}[Depletion Probability]
+  An admitted car with demand $y$ depletes the battery iff $y > p_2 x/c$.
+  Averaging over the battery level seen at admission:
+  \[
+    P_D(y) = \begin{cases}
+      \dfrac{A}{\theta_1}\bigl(e^{\theta_1 cy/p_2}-1\bigr) & y < p_2 B/c \\[6pt]
+      1 & y \geq p_2 B/c
+    \end{cases}
+  \]
+  where $A = c/[(1-P_B)K]$ normalizes the admitted battery density.
+\end{theorem}
+
+\medskip
+\begin{theorem}[Charging Time Decomposition]
+  Given admission at battery level $x$ with demand $y$:
+  \[
+    T(x,y) = \frac{y}{p_2}
+    + \underbrace{\Bigl(\frac{1}{p_1}-\frac{1}{p_2}\Bigr)\max\!\Bigl(y-\frac{p_2 x}{c},0\Bigr)}_{\text{penalty for depletion}}
+  \]
+  First term: ideal fast-charging time.
+  Second term: extra time due to switching to slow mode.
+\end{theorem}
+\end{frame}
+
+%% ----
+\begin{frame}{Mean Charging Efficiency}
+
+\begin{theorem}[Mean Charging Efficiency]
+  Let $\gamma := \theta_1 - \mu p_2/c = -\lambda/p_0 < 0$ (always).
+  Averaging $T(x,y)/y$ over $Y\sim\mathrm{Exp}(\mu)$ and the admitted battery density:
+  \[
+    \frac{\E[T]}{\E[Y]}
+    = \frac{1}{p_2}
+    + \Bigl(\frac{1}{p_1}-\frac{1}{p_2}\Bigr)\!
+      \left[\frac{A(e^{\gamma B}-1)}{\gamma}
+            + g_B\,e^{-\mu p_2 B/c}\right]
+  \]
+  where $g_B = \pi_0^{(B)}/(1-P_B)$ is the point mass at $x=B$ in the admitted distribution.
+\end{theorem}
+
+\begin{alertblock}{Universal convergence}
+  Since $\gamma = -\lambda/p_0 < 0$ \textbf{always}, regardless of other parameters:
+  \[
+    \frac{\E[T]}{\E[Y]} \;\xrightarrow{B\to\infty}\; \frac{1}{p_2}
+  \]
+  Enlarging the battery \emph{always} improves efficiency, converging to the ideal fast-charge rate.
+\end{alertblock}
+\end{frame}
+
+%% ----
+\begin{frame}{System-Level Metrics}
+\small
+\begin{theorem}[Mode Fractions, Mean Battery, Mean Grid Power]
+  \vspace{-4pt}
+  \[
+    \rho_{\mathrm{slow}} = \frac{p_0 c}{\mu p_1 K}, \quad
+    \rho_{\mathrm{fast}} = \frac{p_0(e^{\theta_1 B}-1)}{\theta_1 K}, \quad
+    \rho_{\mathrm{idle}} = \frac{c(e^{\theta_1 B}-1)}{\theta_1 K}+\frac{p_0 c}{\lambda K}e^{\theta_1 B}
+  \]
+  with $\rho_{\mathrm{slow}}+\rho_{\mathrm{fast}}+\rho_{\mathrm{idle}}=1$ and
+  $\rho_{\mathrm{slow}}+\rho_{\mathrm{fast}}=P_B$.
+
+  Mean battery level:
+  \vspace{-4pt}
+  \[
+    \E[x] = \frac{1}{K}\!\left[(p_0+c)\!\left(\frac{Be^{\theta_1 B}}{\theta_1}
+    -\frac{e^{\theta_1 B}-1}{\theta_1^2}\right)+\frac{p_0 cB}{\lambda}e^{\theta_1 B}\right]
+  \]
+
+  Mean grid power ($\in[p_0,p_1]$):
+  \vspace{-4pt}
+  \[
+    \E[P_{\mathrm{grid}}] = p_1 - (p_1-p_0)\,\rho_{\mathrm{idle}}
+  \]
+\end{theorem}
+
+\normalsize
+\begin{itemize}
+  \item Larger $B$ $\Rightarrow$ more idle time $\Rightarrow$ lower mean grid draw
+  \item $\rho_{\mathrm{slow}}\to 0$ as $B\to\infty$: slow charging disappears
+\end{itemize}
+\end{frame}
+
+%% ----
+\begin{frame}{Summary of Metrics}
+
+\begin{center}
+\small
+\renewcommand{\arraystretch}{1.35}
+\begin{tabular}{llc}
+\toprule
+\textbf{Metric} & \textbf{Formula} & \textbf{Limit as $B\to\infty$} \\
+\midrule
+Blocking $P_B$ & $\tfrac{p_0}{K}\!\left[\tfrac{e^{\theta_1 B}-1}{\theta_1}+\tfrac{c}{\mu p_1}\right]$ & $\tfrac{\lambda}{\lambda+\mu p_2}$ \\[4pt]
+Depletion $P_D(y)$ & $\tfrac{A}{\theta_1}(e^{\theta_1 cy/p_2}-1)$ & $1-e^{\theta_1 cy/p_2}$ \\[4pt]
+Mean efficiency & $\tfrac{1}{p_2}+(\tfrac{1}{p_1}-\tfrac{1}{p_2})[\cdots]$ & $\tfrac{1}{p_2}$ \\[4pt]
+Mean battery $\E[x]$ & closed form above & $\infty$ (grows $\propto B$) \\[4pt]
+Mean grid power & $p_1-(p_1-p_0)\rho_{\mathrm{idle}}$ & $p_1-(p_1-p_0)(1-P_B)$ \\[4pt]
+$\rho_{\mathrm{fast}}$ & $\tfrac{p_0(e^{\theta_1 B}-1)}{\theta_1 K}$ & $P_B - \rho_{\mathrm{slow}}$ \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+\medskip
+\begin{itemize}
+  \item All metrics are \textbf{explicit} functions of $(p_0,p_1,p_2,\mu,\lambda,B)$
+  \item Single-exponential structure of $f_0$, $f_1$ drives all formulas
+\end{itemize}
+\end{frame}
+
+%% ============================================================
+%% SECTION 5 — GENERAL SERVICE TIMES
+%% ============================================================
+\section{General Energy Demands}
+
+\begin{frame}{Why Exponentiality Was Special}
+
+For $Y\sim\mathrm{Exp}(\mu)$:
+\begin{itemize}
+  \item Residual demand at any time $\sim\mathrm{Exp}(\mu)$ (memoryless)
+  \item Departure rate is a function of $(n,x)$ alone
+  \item Process $(n,x)$ is Markov $\Rightarrow$ ODE system in $x$
+\end{itemize}
+
+\medskip
+For general $Y\sim F$:
+\begin{itemize}
+  \item Residual demand depends on \textbf{how long the car has been served} and \textbf{the charging rate history}
+  \item Departure rate depends on the residual demand, not just on $(n,x)$
+  \item $(n,x)$ is \textbf{not} Markov
+\end{itemize}
+
+\medskip
+\begin{block}{Augmented state}
+  Let $r(t)$ = residual energy demand of the car currently in service (0 if $n=0$).
+  Then $(n(t),x(t),r(t))$ is Markov and defines a PDMP on
+  \[
+    E = \{0\}\times[0,B]\times\{0\}\;\cup\;\{1\}\times[0,B]\times[0,\infty)
+  \]
+\end{block}
+\end{frame}
+
+%% ----
+\begin{frame}{Augmented PDMP}
+
+\begin{columns}[T]
+\begin{column}{0.44\textwidth}
+\textbf{Flow:}
+\[
+\begin{pmatrix}\dot{x}\\\dot{r}\end{pmatrix} =
+\begin{cases}
+\begin{pmatrix}+p_0\\0\end{pmatrix} & n=0\\[6pt]
+\begin{pmatrix}-c\\-p_2\end{pmatrix} & n=1,\,x>0\\[6pt]
+\begin{pmatrix}0\\-p_1\end{pmatrix} & n=1,\,x=0
+\end{cases}
+\]
+\end{column}
+\begin{column}{0.52\textwidth}
+\textbf{Jumps:}\\[6pt]
+\emph{Arrivals} (rate $\lambda$, when $n=0$):
+\[
+  (0,x,0)\;\to\;(1,x,r')\quad r'\sim f_Y
+\]
+
+\emph{Departures} (when $r$ hits 0):
+\[
+  (1,x,0)\;\to\;(0,x,0)
+\]
+These are \textbf{forced jumps} at the boundary $r=0$, in the sense of Davis (1984).
+\end{column}
+\end{columns}
+
+\medskip
+\begin{exampleblock}{Two regions of interest}
+  \begin{itemize}
+    \item \textbf{Region I:} $n=1$, $x>0$, $r>0$ — fast charging; drift $(\dot{x},\dot{r})=(-c,-p_2)$
+    \item \textbf{Region II:} $n=1$, $x=0$, $r>0$ — slow charging; drift $(0,-p_1)$
+  \end{itemize}
+\end{exampleblock}
+\end{frame}
+
+%% ----
+\begin{frame}{Main Theorem: General Demands (I)}
+
+\begin{theorem}[Characteristic Solution in Region~I]
+\label{thm:general}
+  Let $f_0(x)$ be the stationary density for $n=0$, $x>0$.
+  In Region~I ($n=1$, $x>0$, $r>0$), the joint density $f_1(x,r)$ satisfies the
+  transport PDE with source:
+  \[
+    c\,\partial_x f_1 + p_2\,\partial_r f_1 = \lambda\,f_0(x)\,f_Y(r)
+  \]
+  The characteristics are lines $p_2 x - cr = \mathrm{const}$; integrating along them
+  from the entry point of each trajectory:
+  \[
+    \boxed{f_1(x,r) = \frac{\lambda}{p_2}\int_r^\infty
+      f_0\!\left(x+\frac{c(R-r)}{p_2}\right)f_Y(R)\,dR}
+  \]
+  \emph{Interpretation}: the density at $(x,r)$ sums contributions from all cars that
+  arrived at battery level $x + c(R-r)/p_2$ with demand $R > r$ and have since been
+  partially served.
+\end{theorem}
+\end{frame}
+
+\begin{frame}{Main Theorem: General Demands (II)}
+
+\begin{theorem}[Laplace Transform of $f_0$]
+  Let $M_Y(t)=\E[e^{tY}]$ be the MGF of $Y$. Using the departure flux
+  $p_2 f_1(x,0^+)$ from the characteristic solution to close the $f_0$ balance
+  equation $p_0 f_0' = -\lambda f_0 + p_2 f_1(\cdot,0^+)$, and taking the
+  Laplace transform in $x$:
+  \[
+    \boxed{\hat{f}_0(s) = \frac{p_0\,f_0(0^+)}{p_0 s + \lambda\!\left[1 - M_Y\!\!\left(\dfrac{cs}{p_2}\right)\right]}}
+  \]
+  where $f_0(0^+)$ is fixed by normalization, and the denominator
+  $\psi(s) := p_0 s + \lambda[1 - M_Y(cs/p_2)]$ is the \textbf{characteristic function}
+  of the problem.
+\end{theorem}
+
+\begin{itemize}
+  \item The poles of $\hat{f}_0$ (zeros of $\psi$) determine the exponential modes of $f_0$
+  \item For $Y\sim\mathrm{Exp}(\mu)$: one pole $\Rightarrow$ single exponential
+  \item For Erlang$(n,\mu)$: $n$ poles $\Rightarrow$ sum of $n$ exponentials
+\end{itemize}
+\end{frame}
+
+%% ----
+\begin{frame}{Proof Sketch}
+
+\textbf{Step 1 — Transport PDE with source.}
+The balance for $f_1(x,r)$ in Region I (no sources from departures in the interior;
+arrivals inject mass at rate $\lambda f_0(x)f_Y(r)$):
+\[
+  c\,\partial_x f_1 + p_2\,\partial_r f_1 = \lambda\,f_0(x)\,f_Y(r)
+\]
+
+\textbf{Step 2 — Integrate along characteristics.}
+The characteristic through $(x,r)$ was seeded by a car arriving at battery level
+$X=x+c(R-r)/p_2$ with demand $R$. Since each trajectory passes through $(x,r)$ exactly
+once at speed $p_2$ in the $r$-direction:
+\[
+  f_1(x,r) = \frac{\lambda}{p_2}\int_r^\infty f_0\!\left(x+\frac{c(R-r)}{p_2}\right)f_Y(R)\,dR
+\]
+
+\textbf{Step 3 — Close via the $f_0$ equation.}
+The $f_0$ balance is: $p_0 f_0'(x) = -\lambda f_0(x) + p_2 f_1(x,0^+)$.
+Substituting $f_1(x,0^+)$ from Step 2 and taking the Laplace transform:
+\[
+  \hat{f}_0(s)\!\left[p_0 s + \lambda - \lambda\,M_Y\!\!\left(\frac{cs}{p_2}\right)\right]
+  = p_0\,f_0(0^+) \qquad\square
+\]
+\end{frame}
+
+%% ----
+\begin{frame}{Recovery of the Exponential Case}
+
+For $Y\sim\mathrm{Exp}(\mu)$: $M_Y(t) = \mu/(\mu-t)$, so
+\[
+  1 - M_Y\!\!\left(\frac{cs}{p_2}\right) = \frac{-cs/p_2}{\mu - cs/p_2}
+\]
+Substituting into $\hat{f}_0(s) = p_0 f_0(0^+)/\psi(s)$ and simplifying:
+\[
+  \hat{f}_0(s) = \frac{p_0\,f_0(0^+)}{s - \theta_1}
+  \;\xrightarrow{\;\mathcal{L}^{-1}\;}\;
+  f_0(x) = p_0\,f_0(0^+)\,e^{\theta_1 x} \quad (\theta_1 < 0)
+\]
+which is exactly the single-exponential solution derived by the ODE method. \checkmark
+
+\medskip
+\begin{block}{General $F$: poles of $\hat{f}_0$ determine the modes of $f_0$}
+  \small
+  \renewcommand{\arraystretch}{1.3}
+  \begin{tabular}{lll}
+    \toprule
+    Distribution $F$ & $M_Y(cs/p_2)$ & Modes of $f_0$ \\
+    \midrule
+    Exp$(\mu)$          & Möbius (rational, deg 1) & 1 exponential \\
+    Erlang$(n,\mu)$     & Rational, deg $n$        & $n$ exponentials \\
+    Hyper-exp           & Rational                 & Finite sum \\
+    Phase-type PH$(\bm\alpha,T)$ & Rational        & $|T|$ exponentials \\
+    Log-normal / Weibull & Non-rational             & Infinite sum / series \\
+    \bottomrule
+  \end{tabular}
+\end{block}
+\end{frame}
+
+%% ----
+\begin{frame}{Characteristic Equation and Zeros}
+
+Define the \textbf{characteristic function}:
+\[
+  \psi(s) := p_0\,s + \lambda\!\left[1 - M_Y\!\!\left(\frac{cs}{p_2}\right)\right]
+\]
+
+\begin{itemize}
+  \item $\psi(0)=0$ always (trivial zero, corresponds to normalization)
+  \item $\psi'(0) = p_0 - \dfrac{\lambda c}{\mu p_2}$, \quad so $\psi'(0)<0 \iff \theta_1<0$
+  \item For stability (finite $\E[x]$): need $\psi'(0)<0$, i.e.\ $\theta_1<0$ — same condition as exponential case!
+\end{itemize}
+
+\medskip
+\begin{alertblock}{Stability condition is distribution-free}
+  The stability condition $\theta_1 < 0$ (equivalently $\lambda > \lambda_c = \mu p_2 p_0/c$)
+  depends on $F$ \textbf{only through its mean} $1/\mu$.
+  The same critical load $\lambda_c$ governs stability for any demand distribution with mean $1/\mu$.
+\end{alertblock}
+\end{frame}
+
+%% ----
+\begin{frame}{Performance Metrics for General $F$: Blocking}
+
+\begin{theorem}[Blocking Probability, General $F$, $B=\infty$]
+  By PASTA, $P_B = \Pr(n=1)$ and $1-P_B = \lambda\int_0^\infty f_0(x)\,dx = \lambda\hat{f}_0(0)$.
+  Since $\psi(0)=0$, L'H\^{o}pital gives:
+  \[
+    \hat{f}_0(0) = \frac{p_0\,f_0(0^+)}{\psi'(0)}, \qquad
+    \psi'(0) = p_0 - \frac{\lambda c}{\mu p_2}
+  \]
+  Combined with the normalization $\int_0^\infty(f_0+f_1)dx + \pi_1^{(0)} = 1$, this yields:
+  \[
+    \boxed{P_B = \frac{\lambda c/(\mu p_2 p_0)}{1 + \lambda c/(\mu p_2 p_0) + \mu p_1\,\pi_1^{(0)}/(p_0 f_0(0^+))}}
+  \]
+  For the special case where $\pi_1^{(0)} \to 0$ (battery rarely empty, large $B$):
+  \[
+    P_B \approx \frac{\lambda/\lambda_c}{1+\lambda/\lambda_c}
+  \]
+\end{theorem}
+
+\smallskip
+\begin{itemize}
+  \item The leading-order $P_B$ depends on $F$ \textbf{only through its mean} $\E[Y]=1/\mu$
+  \item The slow-charging correction via $\pi_1^{(0)}$ is distribution-dependent
+\end{itemize}
+\end{frame}
+
+%% ----
+\begin{frame}{Mean Battery Level, General $F$}
+
+\begin{theorem}[Mean Battery Level, General $F$, $B=\infty$]
+  Since $\mathrm{E}_0[x] = -\hat{f}_0'(0)$, differentiate $\hat{f}_0(s)=p_0 f_0(0^+)/\psi(s)$
+  and evaluate at $s=0$ using L'H\^{o}pital (since $\hat{f}_0$ has a simple pole at $s=0$):
+  \[
+    \mathrm{E}_0[x] = \frac{p_0\,f_0(0^+)\,\psi''(0)}{2\,\psi'(0)^2}
+  \]
+  Computing the second derivative of $\psi$ at zero:
+  \[
+    \psi''(0) = -\frac{\lambda c^2}{p_2^2}\,\E{Y^2}
+  \]
+  so that:
+  \[
+    \boxed{\mathrm{E}_0[x] = \frac{\lambda c^2\,\E{Y^2}}{2p_2^2}\cdot\frac{p_0\,f_0(0^+)}{\psi'(0)^2}}
+  \]
+\end{theorem}
+
+\begin{alertblock}{Dependence on $\E[Y^2]$}
+  Unlike $P_B$, the mean battery level depends on $F$ through its \textbf{second moment}
+  $\E[Y^2] = \mathrm{Var}(Y) + 1/\mu^2$.
+  Higher demand variance $\Rightarrow$ larger mean battery level:
+  more variable service generates wider fluctuations in the drain cycle.
+\end{alertblock}
+\end{frame}
+
+%% ----
+\begin{frame}{Mean Charging Efficiency, General $F$}
+
+\begin{theorem}[Mean Charging Time, General $F$]
+  The mean service time decomposes as:
+  \[
+    \E[T] = \frac{\E[Y]}{p_2}
+    + \Bigl(\frac{1}{p_1}-\frac{1}{p_2}\Bigr)
+    \int_0^\infty g(x_0)\int_{p_2 x_0/c}^\infty \bar{F}(y)\,dy\;dx_0
+  \]
+  where $g(x_0)$ is the battery density seen at admission and
+  $\bar{F}(y)=\Pr(Y>y)$ is the tail of $F$.
+\end{theorem}
+
+\vspace{-2pt}
+\begin{itemize}
+  \item Uses the \textbf{stop-loss identity}: $\E[\max(Y-t,0)] = \int_t^\infty \bar{F}(y)\,dy$
+  \item For $Y\sim\mathrm{Exp}(\mu)$: $\bar{F}(y)=e^{-\mu y}$, integral is explicit $\Rightarrow$ recovers earlier formula
+  \item For general $F$: $\E[T]/\E[Y]$ depends on the entire distribution through $\bar{F}$
+\end{itemize}
+
+\begin{exampleblock}{Convergence to $1/p_2$ as $B\to\infty$}
+  As $B\to\infty$, admitted customers increasingly find a full battery,
+  $g(x_0)\to 0$ for small $x_0$, and the depletion integral vanishes:
+  \[
+    \frac{\E{T}}{\E{Y}} \;\to\; \frac{1}{p_2} \quad \text{for \emph{any} }F\text{ with finite mean}
+  \]
+  The convergence rate depends on $F$ through the stop-loss transform.
+\end{exampleblock}
+\end{frame}
+
+%% ----
+\begin{frame}{What Changes vs the Exponential Case}
+
+\renewcommand{\arraystretch}{1.2}
+\begin{center}
+\footnotesize
+\begin{tabular}{lll}
+\toprule
+\textbf{Feature} & \textbf{Exponential $Y$} & \textbf{General $Y$} \\
+\midrule
+State space & $(n,x)$ & $(n,x,r)$ \\
+Departure mechanism & Poisson, rate $\delta(x)$ & Deterministic hitting $r=0$ \\
+Balance equations & ODE system in $x$ & PDE system in $(x,r)$ \\
+Solution method & Eigenvalue decomposition & Characteristics + Laplace \\
+$\hat{f}_0(s)$ & $A/(s-\theta_1)$ & $p_0 f_0(0^+)/\psi(s)$ \\
+$f_0(x)$ & Single exponential & Sum of exponentials \\
+Proportionality $f_1/f_0$ & Constant in $x$ & $x$-dependent \\
+Stability condition & $\lambda>\lambda_c$ & Same $\lambda_c$ (mean only) \\
+$P_B$ & Explicit & Via $\psi'(0)$; depends on mean only \\
+$\E{x}$ & Explicit & Via $\psi''(0)$; needs $\E{Y^2}$ \\
+$\E{T}/\E{Y}$ & Explicit & Via stop-loss transform of $F$ \\
+\bottomrule
+\end{tabular}
+\end{center}
+\end{frame}
+
+%% ============================================================
+%% CONCLUSION
+%% ============================================================
+\section*{Conclusion}
+
+\begin{frame}{Summary and Open Problems}
+
+\textbf{Summary:}
+\begin{itemize}
+  \item Modeled battery-buffered EV charging station as a PDMP on $\{0,1\}\times[0,B]$
+  \item Exponential demands: exact closed-form stationary distribution and metrics
+  \item Key structural result: proportionality $f_1/f_0=p_0/c$ (charger occupancy independent of battery level)
+  \item General demands: solvable via characteristics + Laplace transform; $\hat{f}_0(s)=p_0 f_0(0^+)/\psi(s)$
+  \item Stability condition $\lambda>\lambda_c$ is \textbf{distribution-free} (depends only on mean demand)
+  \item Metrics for general $F$ involve $\E{Y^2}$, stop-loss transform, MGF
+\end{itemize}
+
+\medskip
+\textbf{Open problems:}
+\begin{itemize}
+  \item Multi-server extension ($s>1$, shared grid)
+  \item Finite $B$ with general $F$: boundary conditions couple Regions I and II
+  \item Waiting room (non-loss) systems
+  \item Phase-type demands: matrix-analytic approach
+  \item Optimal sizing of $B$, $p_0$, $p_2$ given cost and revenue
+\end{itemize}
+\end{frame}
+
+\end{document}

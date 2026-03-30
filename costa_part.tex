@@ -1,0 +1,267 @@
+
+% ============================================================
+\section{The embedded Markov chain}
+
+% ============================================================
+% Slide 1: The embedded chain
+% ============================================================
+\begin{frame}{The Embedded Markov Chain}
+
+  Associated to any PDMP is a natural discrete-time object: the
+  sequence of \textbf{post-jump locations}.
+
+  \bigskip
+  \begin{definition}[Embedded chain]
+    Let $T_1, T_2, \ldots$ be the jump times of the PDMP and
+    $Z_0 = X_0$. Define:
+    \[
+      Z_k = X_{T_k}, \quad k = 1, 2, \ldots
+    \]
+    The sequence $\{Z_k\}_{k \geq 0}$ is a discrete-time Markov
+    chain on $E$, called the \textbf{embedded chain}.
+  \end{definition}
+
+  \bigskip
+  \begin{block}{Transition kernel $\mathcal{Q}$}
+    Starting from $x \in E$, the next post-jump location has
+    distribution:
+    \[
+      \mathcal{Q}(A; x) = P_x(Z_1 \in A)
+      = \int_0^\infty Q(A;\varphi(s,x))\,\lambda(\varphi(s,x))\,
+      e^{-\Lambda(s,x)}\,\mathrm{d}s.
+    \]
+    This is a weighted average of the jump kernel $Q$ along the
+    flow trajectory from $x$, weighted by the probability density
+    of jumping at time $s$.
+  \end{block}
+
+  \bigskip
+  \begin{block}{Interpretation}
+    $\mathcal{Q}(A;x)$ is the probability that, starting from $x$,
+    the process lands in $A$ at its first jump --- integrating over
+    all possible jump times.
+  \end{block}
+
+\end{frame}
+
+% ============================================================
+% Slide 2: The two sets of stationary distributions
+% ============================================================
+\begin{frame}{Stationary Distributions: Two Problems}
+
+  \begin{definition}[Stationary distributions for the PDMP]
+    A probability measure $\mu$ on $E$ is a \textbf{stationary
+    distribution for the PDMP} if:
+    \[
+      \int_E P_t f\,\mathrm{d}\mu = \int_E f\,\mathrm{d}\mu
+      \quad \text{for all bounded measurable } f,\ t \geq 0.
+    \]
+    Denote by $\Pi_{\mathrm{PDP}}$ the set of all such measures.
+  \end{definition}
+
+  \bigskip
+  \begin{definition}[Stationary distributions for the embedded chain]
+    A probability measure $\pi$ on $E$ is a \textbf{stationary
+    distribution for $\{Z_k\}$} if:
+    \[
+      \int_E \mathcal{Q}(A;x)\,\pi(\mathrm{d}x) = \pi(A)
+      \quad \text{for all measurable } A \subseteq E.
+    \]
+    Denote by $\Pi_{\mathrm{MC}}$ the set of all such measures.
+  \end{definition}
+
+  \bigskip
+  \begin{alertblock}{Two different problems}
+    $\Pi_{\mathrm{PDP}}$ and $\Pi_{\mathrm{MC}}$ are in general
+    \emph{different} sets --- a stationary distribution for the
+    PDMP need not be stationary for the embedded chain and vice
+    versa. Costa (1990) constructs an explicit bijection between
+    them.
+  \end{alertblock}
+
+\end{frame}
+
+% ============================================================
+% Slide 3: The mapping T
+% ============================================================
+\begin{frame}{The Mapping $\mathcal{T}$: PDMP $\to$ Embedded Chain}
+
+  \begin{definition}[Costa 1990, Theorem~1]
+    For $\mu \in \Pi_{\mathrm{PDP}}$ with $\int_E \lambda\,\mathrm{d}\mu
+    < \infty$, define:
+    \[
+      \mathcal{T}\mu(A) :=
+      \frac{\displaystyle\int_E \lambda(x)\,Q(A;x)\,\mu(\mathrm{d}x)}
+           {\displaystyle\int_E \lambda(x)\,\mu(\mathrm{d}x)}.
+    \]
+  \end{definition}
+
+  \bigskip
+  \begin{block}{Interpretation}
+    $\mathcal{T}\mu$ is the \textbf{rate-weighted distribution of
+    post-jump locations} under $\mu$:
+    \begin{itemize}
+      \setlength\itemsep{4pt}
+      \item The numerator weights each location $x$ by its jump
+            rate $\lambda(x)$ and the probability of landing in $A$
+            from $x$.
+      \item The denominator normalizes so that $\mathcal{T}\mu$ is
+            a probability measure.
+      \item Intuitively: $\mathcal{T}\mu$ is the distribution seen
+            by an observer watching only the post-jump locations,
+            weighted by how frequently jumps occur.
+    \end{itemize}
+  \end{block}
+
+  \bigskip
+  \begin{block}{Result: Costa (1990) Theorem~1}
+    $\mathcal{T}\mu \in \Pi_{\mathrm{MC}}$ for every
+    $\mu \in \Pi_{\mathrm{PDP}}$.
+  \end{block}
+
+  \bigskip
+  \begin{block}{Remark: boundary jumps}
+    In the general Costa setting, the numerator contains an
+    additional term accounting for forced boundary jumps:
+    $\int_{\partial^* E} l(z)\,Q(A;z)\,\zeta(\mathrm{d}z)\,\mu(E_1)$,
+    where $l(z)$ is the boundary local time density and $\zeta$
+    is the boundary measure.
+  \end{block}
+
+\end{frame}
+
+% ============================================================
+% Slide 4: The mapping P
+% ============================================================
+\begin{frame}{The Mapping $\mathcal{P}$: Embedded Chain $\to$ PDMP}
+
+  \begin{definition}[Costa 1990, Theorem~2]
+    For $\pi \in \Pi_{\mathrm{MC}}$ with
+    $\int_E \int_0^\infty e^{-\Lambda(t,x)}\,\mathrm{d}t\,\pi(\mathrm{d}x)
+    < \infty$, define:
+    \[
+      \mathcal{P}\pi(A) :=
+      \frac{\displaystyle\int_E \int_0^\infty
+            \mathbf{1}_{\varphi(t,x)\in A}\,e^{-\Lambda(t,x)}\,
+            \mathrm{d}t\,\pi(\mathrm{d}x)}
+           {\displaystyle\int_E \int_0^\infty
+            e^{-\Lambda(t,x)}\,\mathrm{d}t\,\pi(\mathrm{d}x)}.
+    \]
+  \end{definition}
+
+  \bigskip
+  \begin{block}{Interpretation}
+    $\mathcal{P}\pi$ is the \textbf{survival-weighted occupation
+    measure} of the flow under $\pi$:
+    \begin{itemize}
+      \setlength\itemsep{4pt}
+      \item The numerator measures the expected time spent in $A$
+            along the flow from each post-jump location $x$,
+            weighted by $e^{-\Lambda(t,x)}$ --- the probability of
+            not having jumped yet at time $t$.
+      \item The denominator normalizes to a probability measure.
+      \item Intuitively: $\mathcal{P}\pi$ is the long-run fraction
+            of time the PDMP spends in $A$, given that post-jump
+            locations are distributed as $\pi$.
+    \end{itemize}
+  \end{block}
+
+  \bigskip
+  \begin{block}{Result: Costa (1990) Theorem~2}
+    $\mathcal{P}\pi \in \Pi_{\mathrm{PDP}}$ for every
+    $\pi \in \Pi_{\mathrm{MC}}$.
+  \end{block}
+
+\end{frame}
+
+% ============================================================
+% Slide 5: Main theorem
+% ============================================================
+\begin{frame}{Costa (1990): The Main Theorem}
+
+  \begin{theorem}[Costa 1990, Theorem~3]
+    Under the conditions:
+    \begin{itemize}
+      \item $\lambda(x) \leq \lambda_{\max} < \infty$ for all
+            $x \in E$,
+      \item $\lambda(x) \geq \lambda_{\min} > 0$ for all $x \in E_2
+            = \{x : t^*(x) = \infty\}$,
+      \item $t^*(x) \leq t_{\max} < \infty$ for all $x \in E_1
+            = \{x : t^*(x) < \infty\}$,
+    \end{itemize}
+    the mappings $\mathcal{T}$ and $\mathcal{P}$ are mutual inverses:
+    \[
+      \mathcal{P} \circ \mathcal{T} = \mathrm{Id}
+      \quad \text{on } \Pi_{\mathrm{PDP}},
+      \qquad
+      \mathcal{T} \circ \mathcal{P} = \mathrm{Id}
+      \quad \text{on } \Pi_{\mathrm{MC}}.
+    \]
+    In particular, $\mathcal{T}$ is a bijection from
+    $\Pi_{\mathrm{PDP}}$ to $\Pi_{\mathrm{MC}}$ with inverse
+    $\mathcal{P}$.
+  \end{theorem}
+
+  \bigskip
+  \begin{block}{Consequence}
+    Existence and uniqueness of a stationary distribution for the
+    PDMP is \textbf{equivalent} to existence and uniqueness for
+    the embedded chain $\{Z_k\}$. In particular:
+    \begin{itemize}
+      \setlength\itemsep{4pt}
+      \item If $\Pi_{\mathrm{MC}} = \{\pi\}$ then
+            $\Pi_{\mathrm{PDP}} = \{\mathcal{P}\pi\}$.
+      \item The stationary distribution of the PDMP can be
+            \textbf{computed explicitly} as $\mathcal{P}\pi$ once
+            $\pi$ is known.
+    \end{itemize}
+  \end{block}
+
+  \bigskip
+  \textit{Costa, O.L.V., J.\ Appl.\ Prob.\ \textbf{27}:60--73,
+  1990.}
+
+\end{frame}
+
+% ============================================================
+% Slide 6: Sufficient conditions via Tweedie
+% ============================================================
+\begin{frame}{Sufficient Conditions via Tweedie's Criterion}
+
+  Costa (1990) applies Tweedie's (1975) drift criterion directly
+  to the embedded chain $\{Z_k\}$ to obtain sufficient conditions
+  for existence of a stationary distribution.
+
+  \bigskip
+  \begin{theorem}[Costa 1990, Proposition~6; Tweedie 1975]
+    Let $\{Z_k\}$ be $\nu$-irreducible with strongly continuous
+    kernel $\mathcal{Q}$. A stationary distribution exists if there
+    is a compact set $\Gamma \subset E$ with $\nu(\Gamma) > 0$ and
+    a non-negative function $g$ on $E$ such that:
+    \begin{enumerate}
+      \setlength\itemsep{4pt}
+      \item $\int_E g(y)\,\mathcal{Q}(\mathrm{d}y;x)
+            \leq g(x) - \varepsilon$
+            \quad for $x \notin \Gamma$, some $\varepsilon > 0$,
+      \item $\int_E g(y)\,\mathcal{Q}(\mathrm{d}y;x)
+            \leq B < \infty$
+            \quad for $x \in \Gamma$, some $B > 0$.
+    \end{enumerate}
+  \end{theorem}
+
+  \bigskip
+  \begin{block}{Strong continuity: Costa (1990) Proposition~7}
+    $\mathcal{Q}(A;\cdot)$ is continuous on $E$ if $t^*(\cdot)$
+    is continuous and $\lambda$, $Q$ are continuous along
+    trajectories in the Lebesgue-a.e.\ sense.
+  \end{block}
+
+  \bigskip
+  \begin{block}{Practical advantage}
+    Verifying the drift condition on $\mathcal{Q}$ is often easier
+    than working directly with the PDMP generator $\mathcal{A}$,
+    since $\{Z_k\}$ is a classical discrete-time Markov chain for
+    which a large body of theory is available.
+  \end{block}
+
+\end{frame}
