@@ -1479,8 +1479,345 @@
       \textit{A mean-field model for multiple TCP connections through
       a buffer implementing RED.}
       Performance Evaluation \textbf{49}(1--4):77--97, 2002.
+
+      \item F.~Baccelli, D.~R.~McDonald.
+      \textit{A stochastic model for the throughput of
+      non-persistent TCP flows.}
+      In \textit{Proceedings of the 1st International Conference
+      on Performance Evaluation Methodologies and Tools}
+      (Valuetools'06), Pisa, Italy, October 2006.
+      ACM, ISBN 1-59593-504-5.
   \end{itemize}
   
+\end{frame}
+
+% ============================================================
+% APPENDIX: MELLIN TRANSFORM ANALYSIS
+% ============================================================
+
+\section{Appendix: Mellin Transform Analysis of the TCP/IP
+          Stationary Distribution}
+
+% ============================================================
+% APPENDIX: MELLIN TRANSFORM ANALYSIS
+% ============================================================
+
+\appendix
+\section*{Appendix: Mellin Transform Analysis of the TCP/IP
+          Stationary Distribution}
+
+% ============================================================
+% Backup 1: Balance equation
+% ============================================================
+\begin{frame}{The Stationary Balance Equation}
+
+  Recall the TCP/IP PDMP: flow $f(x) = c$, jump rate
+  $\lambda(x) = \alpha x$, kernel $Q(x,\cdot) = \delta_{x/2}$.
+
+  \bigskip
+  The stationary Kolmogorov forward equation reduces to:
+  \[
+    \boxed{c\,\pi'(x) + \alpha x\,\pi(x) = 4\alpha x\,\pi(2x)}
+  \]
+
+  \bigskip
+  \begin{alertblock}{The difficulty: scale coupling}
+    The equation couples $\pi$ at two different scales:
+    $\pi(x)$ on the left and $\pi(2x)$ on the right.
+    This is a \textbf{functional differential equation}
+    --- standard ODE methods do not apply.
+  \end{alertblock}
+
+  \bigskip
+  \begin{block}{Strategy}
+    The Mellin transform converts the scaling
+    $x \mapsto 2x$ into an algebraic operation,
+    turning the equation into a tractable recurrence.
+  \end{block}
+
+\end{frame}
+
+% ============================================================
+% Backup 2: Mellin transform definition
+% ============================================================
+\begin{frame}{The Mellin Transform}
+
+  \begin{definition}[Mellin transform]
+    For $\pi:\mathbb{R}_+\to\mathbb{R}_+$, the \textbf{Mellin
+    transform} is:
+    \[
+      \hat{\pi}(u) = \int_0^\infty x^{u-1}\pi(x)\,\mathrm{d}x,
+      \quad u\in\mathbb{C},\ \alpha < \mathrm{Re}(u) < \beta.
+    \]
+  \end{definition}
+
+  \bigskip
+  \begin{block}{Remark}
+    Since $\hat{\pi}(u) = E_\pi[X^{u-1}]$, integer values give
+    moments directly: $\hat{\pi}(1)=1$, $\hat{\pi}(2)=E_\pi[X]$,
+    $\hat{\pi}(3)=E_\pi[X^2]$, \ldots
+  \end{block}
+
+\end{frame}
+
+% ============================================================
+% Backup 3: Key properties
+% ============================================================
+\begin{frame}{The Mellin Transform: Key Properties}
+
+  \begin{enumerate}
+    \setlength\itemsep{12pt}
+    \item \textbf{Derivative:}
+          $\mathcal{M}[\pi'](u) = -(u-1)\hat{\pi}(u-1)$\\
+          \textit{Proof: integration by parts; boundary terms
+          vanish.}
+
+    \item \textbf{Multiplication by $x$:}
+          $\mathcal{M}[x\pi(x)](u) = \hat{\pi}(u+1)$
+
+    \item \textbf{Scaling:}
+          $\mathcal{M}[\pi(ax)](u) = a^{-u}\hat{\pi}(u)$
+          \quad for $a > 0$\\
+          \textit{Proof: substitute $y = ax$.}
+  \end{enumerate}
+
+\end{frame}
+
+% ============================================================
+% Backup 4: Functional equation
+% ============================================================
+\begin{frame}{Functional Equation for $\hat{\pi}$}
+
+  Apply the Mellin transform to both sides of
+  $c\,\pi'(x) + \alpha x\,\pi(x) = 4\alpha x\,\pi(2x)$:
+
+  \bigskip
+  \[
+    \underbrace{-c(u-1)\hat{\pi}(u-1)}_{\text{prop. 1}}
+    +
+    \underbrace{\alpha\hat{\pi}(u+1)}_{\text{prop. 2}}
+    =
+    \underbrace{2^{1-u}\alpha\,\hat{\pi}(u+1)}_{\text{props. 2\&3}}
+  \]
+
+  \bigskip
+  Collecting terms:
+  \[
+    -c(u-1)\hat{\pi}(u-1) + \alpha(1-2^{1-u})\hat{\pi}(u+1) = 0
+  \]
+
+  \bigskip
+  \begin{block}{Functional equation}
+    \[
+      \boxed{
+        \hat{\pi}(u+1)
+        = \frac{c(u-1)}{\alpha(1-2^{1-u})}\,\hat{\pi}(u-1)
+      }
+    \]
+    A recurrence in steps of 2, valid for all $u$ in the
+    fundamental strip.
+  \end{block}
+
+\end{frame}
+
+% ============================================================
+% Backup 5: The ansatz
+% ============================================================
+\begin{frame}{The Key Ansatz (Baccelli \& McDonald 2006)}
+
+  \begin{block}{Ansatz}
+    Write:
+    \[
+      \hat{\pi}(u) = g(u)\,\Gamma\!\left(\frac{u}{2}\right)
+      \left(\frac{2c}{\alpha}\right)^{u/2}
+    \]
+  \end{block}
+
+  \bigskip
+  Substituting into the functional equation, the $\Gamma$
+  and power factors cancel, leaving a simple recurrence
+  for $g$:
+  \[
+    \boxed{g(u) = g(u+2)\left(1-2^{-u}\right)}
+  \]
+
+  \bigskip
+  Assuming $g(u) \to g(\infty)$ as $\mathrm{Re}(u)\to\infty$
+  (proved in Baccelli et al.\ 2005), iterate forward:
+  \[
+    g(u) = g(\infty)\prod_{k=0}^\infty\left(1-2^{-u-2k}\right)
+    =: g(\infty)\,\Pi_\infty(u)
+  \]
+
+\end{frame}
+
+% ============================================================
+% Backup 6: The solution
+% ============================================================
+\begin{frame}{The Solution for $\hat{\pi}$}
+
+  Substituting $g(u) = g(\infty)\,\Pi_\infty(u)$ back into
+  the ansatz:
+
+  \[
+    \hat{\pi}(u) = C\,\Gamma\!\left(\frac{u}{2}\right)
+    \left(\frac{2c}{\alpha}\right)^{u/2}\Pi_\infty(u)
+  \]
+
+  where $C = g(\infty)$ and:
+  \[
+    \Pi_\infty(u) = \prod_{k=0}^\infty\left(1-2^{-u-2k}\right)
+  \]
+
+  \pause
+  \begin{block}{Verification}
+    \[
+      \frac{\hat{\pi}(u+1)}{\hat{\pi}(u-1)}
+      = \frac{2c}{\alpha}\cdot
+        \underbrace{\frac{\Gamma\!\left(\frac{u+1}{2}\right)}
+                        {\Gamma\!\left(\frac{u-1}{2}\right)}}_{(u-1)/2}
+      \cdot
+      \underbrace{\frac{\Pi_\infty(u+1)}{\Pi_\infty(u-1)}}_{1/(1-2^{1-u})}
+      = \frac{c(u-1)}{\alpha(1-2^{1-u})} \checkmark
+    \]
+    where $\Pi_\infty(u-1) = (1-2^{1-u})\Pi_\infty(u+1)$
+    follows from extracting the $k=0$ term.
+  \end{block}
+
+\end{frame}
+
+% ============================================================
+% Backup 7: Normalization
+% ============================================================
+\begin{frame}{Normalization}
+
+  The constant $C$ is determined by $\hat{\pi}(1) = 1$:
+
+  \[
+    1 = C\,\Gamma\!\left(\frac{1}{2}\right)
+    \left(\frac{2c}{\alpha}\right)^{1/2}\Pi_\infty(1)
+  \]
+
+  Using $\Gamma(1/2) = \sqrt{\pi}$:
+
+  \[
+    \boxed{
+      C = \frac{1}{\sqrt{\frac{2\pi c}{\alpha}}\cdot\Pi_\infty(1)}
+    }
+  \]
+
+  \bigskip
+  So the normalized Mellin transform is:
+
+  \[
+    \hat{\pi}(u) =
+    \frac{\Gamma\!\left(\frac{u}{2}\right)
+          \left(\frac{2c}{\alpha}\right)^{u/2}
+          \Pi_\infty(u)}
+         {\sqrt{\frac{2\pi c}{\alpha}}\cdot\Pi_\infty(1)}
+  \]
+
+\end{frame}
+
+% ============================================================
+% Backup 8: E[X^2]
+% ============================================================
+\begin{frame}{Second Moment: $E_\pi[X^2] = \hat{\pi}(3)$}
+
+  \[
+    \hat{\pi}(3) =
+    \frac{\Gamma\!\left(\frac{3}{2}\right)
+          \left(\frac{2c}{\alpha}\right)^{3/2}
+          \Pi_\infty(3)}
+         {\sqrt{\frac{2\pi c}{\alpha}}\cdot\Pi_\infty(1)}
+  \]
+
+  \bigskip
+  Using $\Gamma(3/2) = \sqrt{\pi}/2$ and extracting the
+  $k=0$ term of $\Pi_\infty(1)$:
+  \[
+    \Pi_\infty(1) = (1-2^{-1})\,\Pi_\infty(3)
+    \implies
+    \frac{\Pi_\infty(3)}{\Pi_\infty(1)} = 2
+  \]
+
+  \bigskip
+  Therefore:
+  \[
+    \hat{\pi}(3) =
+    \frac{\frac{\sqrt{\pi}}{2}\cdot
+          \left(\frac{2c}{\alpha}\right)^{3/2}\cdot 2}
+         {\sqrt{\frac{2\pi c}{\alpha}}}
+    = \frac{2c}{\alpha}
+  \]
+
+  \alert{Consistency check} $E_\pi[X^2] = 2c/\alpha$, consistent with our earlier
+    generator argument $\int\mathcal{A}\psi\,\mathrm{d}\pi = 0$ with $\psi(x) = x$. \checkmark
+
+\end{frame}
+
+% ============================================================
+% Backup 9: E[X]
+% ============================================================
+\begin{frame}{Mean Throughput: $E_\pi[X] = \hat{\pi}(2)$}
+
+  \[
+    \hat{\pi}(2) =
+    \frac{\Gamma(1)\left(\frac{2c}{\alpha}\right)\Pi_\infty(2)}
+         {\sqrt{\frac{2\pi c}{\alpha}}\cdot\Pi_\infty(1)}
+    = \sqrt{\frac{2c}{\alpha\pi}}\cdot
+      \frac{\Pi_\infty(2)}{\Pi_\infty(1)}
+  \]
+
+  \bigskip
+  Numerically:
+  \[
+    \frac{\Pi_\infty(2)}{\Pi_\infty(1)}
+    = \frac{\prod_{k=0}^\infty(1-4^{-k-1})}
+           {\prod_{k=0}^\infty(1-2^{-1-2k})}
+    \approx \frac{0.6894}{0.4278} \approx 1.612
+  \]
+
+  \bigskip
+  \begin{block}{Mean throughput in steady state}
+    \[
+      \boxed{
+        E_\pi[X] = \sqrt{\frac{2c}{\alpha\pi}}\cdot
+        \frac{\Pi_\infty(2)}{\Pi_\infty(1)}
+        \approx 0.91\sqrt{\frac{2c}{\alpha}}
+      }
+    \]
+  \end{block}
+
+\end{frame}
+
+% ============================================================
+% Backup 10: Mathis formula
+% ============================================================
+\begin{frame}{Connection to the Mathis Formula}
+
+  \begin{block}{Mathis formula}
+    For a persistent TCP flow with packet loss probability
+    $p$ and round trip time $R$:
+    \[
+      M = \frac{K}{R\sqrt{p}}
+    \]
+    For \textbf{periodic losses}, $K = \sqrt{3/2} \approx 1.22 $ is derived
+    from the deterministic sawtooth window analysis.
+  \end{block}
+
+  \bigskip
+  In our model $c = 1/R^2$ and $\alpha = p$, so our formula
+  for \textbf{random losses} gives:
+  \[
+    E_\pi[X] = \frac{1}{R\sqrt{p}}\cdot
+    \sqrt{\frac{2}{\pi}}\cdot\frac{\Pi_\infty(2)}{\Pi_\infty(1)}
+    \approx \frac{1.286}{R\sqrt{p}}
+  \]
+  which has the same $1/(R\sqrt{p})$ structure as the Mathis
+  formula, with the constant determined by the stochastic
+  loss process.
+
 \end{frame}
 
 
