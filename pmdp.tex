@@ -341,8 +341,7 @@
   \bigskip
   \begin{alertblock}{Remark}
     Non-explosion is not automatic --- it must be verified for each
-    model. For the TCP/IP example, it follows from Foster's criterion
-    applied later.
+    model.
   \end{alertblock}
 
 \end{frame}
@@ -583,16 +582,9 @@
           $A$ with probability $Q(y, A)$ at rate $\lambda(y)$:
           \[
             \text{gain}_{\text{jump}} = \int_E \lambda(y)\,p(y,t)\,Q(y,A)\,\mathrm{d}y
-            = \int_A \int_E \lambda(y)\,p(y,t)\,Q(y,\mathrm{d}x)\,\mathrm{d}x.
+            = \int_A \int_E \lambda(y)\,p(y,t)\,Q(y,\mathrm{d}z)\,\mathrm{d}x.
           \]
   \end{itemize}
-
-  \bigskip
-  \begin{block}{Balance equation}
-    Since $\frac{d}{dt}\int_A p(x,t)\,\mathrm{d}x = \text{gain} - \text{loss}$
-    and $A$ is arbitrary, we expect $\partial_t p = \mathcal{A}^* p$.
-  \end{block}
-
 \end{frame}
 
 % ============================================================
@@ -726,21 +718,18 @@
     starting from $X_0 = x$.
   \end{definition}
 
-  \bigskip
-  \begin{block}{Stronger notions}
+\end{frame}
+
+\begin{frame}{Ergodicity}{Stronger notions}
+
     \begin{itemize}
-      \setlength\itemsep{4pt}
       \item \textbf{Positive recurrence:} the process returns to
             recurrent sets in finite expected time (defined precisely
             after petite sets are introduced).
+            \vfill
       \item \textbf{Geometric ergodicity:} convergence is exponentially
             fast in a weighted norm $\|\cdot\|_V$ for some $V \geq 1$.
     \end{itemize}
-  \end{block}
-
-  \bigskip
-  \textit{Meyn \& Tweedie (1993), Chapter~13;
-  Costa \& Dufour (1999).}
 
 \end{frame}
 
@@ -884,8 +873,8 @@
 % ============================================================
 \begin{frame}{Harris Recurrence: Connection to Ergodicity}
 
-  \begin{block}{Harris Ergodic Theorem}
-    \textit{Meyn \& Tweedie (1993), Theorem~13.0.1.}\\[4pt]
+  \begin{block}{Harris Ergodic Theorem,Meyn \& Tweedie (1993), Theorem~13.0.1.}
+
     A $\nu$-irreducible, Harris recurrent, positively recurrent PDMP
     admits a unique invariant measure $\pi$ and satisfies
     \[
@@ -1088,7 +1077,7 @@
 
   \bigskip
   \begin{block}{Consequence}
-    The larger $V(x)$, the longer the expected return time to $C$ ---
+    The larger $V(x)$, the longer the expected return time to $C$,
     but it is always finite. Positive recurrence follows.
   \end{block}
 
