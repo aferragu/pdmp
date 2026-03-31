@@ -107,7 +107,7 @@ With $f(x) = c$, $\lambda(x) = \alpha x$, $Q(x,\cdot) = \delta_{x/2}$, changing 
 
 $$c\,\pi'(x) + \alpha x\,\pi(x) = 4\alpha x\,\pi(2x).$$
 
-This couples $\pi(x)$ at scale $x$ to $\pi(2x)$ at scale $2x$ — a **functional differential equation**. Standard ODE methods do not apply directly. The natural tool is the **Mellin transform** (Baccelli et al., 2002).
+This couples $\pi(x)$ at scale $x$ to $\pi(2x)$ at scale $2x$ — a **functional differential equation**. Standard ODE methods do not apply directly. The natural tool is the **Mellin transform** (Baccelli & McDonald, 2006).
 
 ---
 
@@ -173,7 +173,91 @@ $$c - \frac{\alpha}{2}E_\pi[X^2] = 0 \implies \boxed{E_\pi[X^2] = \frac{2c}{\alp
 
 **Bound on the mean.** By Jensen's inequality ($x^2$ is convex):
 $$E_\pi[X]^2 \leq E_\pi[X^2] = \frac{2c}{\alpha} \implies E_\pi[X] \leq \sqrt{\frac{2c}{\alpha}}.$$
-The exact value of $E_\pi[X]$ requires the Mellin transform (Baccelli et al., 2002).
+The exact value of $E_\pi[X]$ is derived via the Mellin transform in the appendix below.
+
+---
+
+## Appendix: Mellin Transform Analysis of the TCP/IP Stationary Distribution
+
+### A.1 The balance equation
+
+The stationary forward equation for the TCP/IP model is:
+$$c\,\pi'(x) + \alpha x\,\pi(x) = 4\alpha x\,\pi(2x).$$
+
+This is a **functional differential equation**: it couples $\pi(x)$ at scale $x$ to $\pi(2x)$ at scale $2x$. Standard ODE methods do not apply. The Mellin transform converts this scale coupling into an algebraic recurrence.
+
+### A.2 The Mellin transform
+
+The **Mellin transform** of $\pi$ is:
+$$\hat{\pi}(u) = \int_0^\infty x^{u-1}\pi(x)\,dx, \quad u \in \mathbb{C},\ \alpha < \text{Re}(u) < \beta.$$
+
+Since $\hat{\pi}(u) = E_\pi[X^{u-1}]$, integer values give moments: $\hat{\pi}(1) = 1$, $\hat{\pi}(2) = E_\pi[X]$, $\hat{\pi}(3) = E_\pi[X^2]$, etc.
+
+**Key properties:**
+1. $\mathcal{M}[\pi'](u) = -(u-1)\hat{\pi}(u-1)$ — integration by parts
+2. $\mathcal{M}[x\pi(x)](u) = \hat{\pi}(u+1)$
+3. $\mathcal{M}[\pi(ax)](u) = a^{-u}\hat{\pi}(u)$ for $a > 0$ — substitute $y = ax$
+
+### A.3 The functional equation for $\hat{\pi}$
+
+Applying the Mellin transform to the balance equation using properties 1, 2, 3:
+$$-c(u-1)\hat{\pi}(u-1) + \alpha(1-2^{1-u})\hat{\pi}(u+1) = 0$$
+
+which gives the **functional equation**:
+$$\boxed{\hat{\pi}(u+1) = \frac{c(u-1)}{\alpha(1-2^{1-u})}\,\hat{\pi}(u-1)}$$
+
+a recurrence in steps of 2, valid for all $u$ in the fundamental strip.
+
+### A.4 The ansatz (Baccelli & McDonald 2006)
+
+Write:
+$$\hat{\pi}(u) = g(u)\,\Gamma\!\left(\frac{u}{2}\right)\left(\frac{2c}{\alpha}\right)^{u/2}$$
+
+Substituting into the functional equation, the $\Gamma$ and power factors cancel (using $\Gamma((u+1)/2) = \frac{u-1}{2}\Gamma((u-1)/2)$), leaving the simple recurrence:
+$$g(u) = g(u+2)(1-2^{-u})$$
+
+Assuming $g(u) \to g(\infty)$ as $\text{Re}(u) \to \infty$ (proved in Baccelli et al. 2005), iterate forward:
+$$g(u) = g(\infty)\prod_{k=0}^\infty(1-2^{-u-2k}) =: g(\infty)\,\Pi_\infty(u)$$
+
+where $\Pi_\infty(u) = \prod_{k=0}^\infty(1-2^{-u-2k})$.
+
+### A.5 The solution
+
+Substituting back:
+$$\hat{\pi}(u) = C\,\Gamma\!\left(\frac{u}{2}\right)\left(\frac{2c}{\alpha}\right)^{u/2}\Pi_\infty(u)$$
+
+**Verification.** The ratio $\Pi_\infty(u+1)/\Pi_\infty(u-1) = 1/(1-2^{1-u})$ follows from extracting the $k=0$ term: $\Pi_\infty(u-1) = (1-2^{1-u})\Pi_\infty(u+1)$. Combined with the Gamma ratio $(u-1)/2$:
+$$\frac{\hat{\pi}(u+1)}{\hat{\pi}(u-1)} = \frac{2c}{\alpha}\cdot\frac{u-1}{2}\cdot\frac{1}{1-2^{1-u}} = \frac{c(u-1)}{\alpha(1-2^{1-u})} \checkmark$$
+
+**Normalization.** Setting $\hat{\pi}(1) = 1$ and using $\Gamma(1/2) = \sqrt{\pi}$:
+$$C = \frac{1}{\sqrt{2\pi c/\alpha}\cdot\Pi_\infty(1)}$$
+
+### A.6 Second moment: verification
+
+Computing $\hat{\pi}(3) = E_\pi[X^2]$ using $\Gamma(3/2) = \sqrt{\pi}/2$ and $\Pi_\infty(3)/\Pi_\infty(1) = 2$ (from extracting the $k=0$ term of $\Pi_\infty(1)$):
+$$E_\pi[X^2] = \hat{\pi}(3) = \frac{2c}{\alpha} \checkmark$$
+
+Consistent with the generator argument.
+
+### A.7 Mean throughput
+
+Computing $\hat{\pi}(2) = E_\pi[X]$ using $\Gamma(1) = 1$:
+$$E_\pi[X] = \sqrt{\frac{2c}{\alpha\pi}}\cdot\frac{\Pi_\infty(2)}{\Pi_\infty(1)}$$
+
+Numerically:
+$$\frac{\Pi_\infty(2)}{\Pi_\infty(1)} = \frac{\prod_{k=0}^\infty(1-4^{-k-1})}{\prod_{k=0}^\infty(1-2^{-1-2k})} \approx \frac{0.6894}{0.4278} \approx 1.612$$
+
+giving:
+$$\boxed{E_\pi[X] \approx 0.91\sqrt{\frac{2c}{\alpha}}}$$
+
+consistent with the Jensen upper bound $E_\pi[X] \leq \sqrt{2c/\alpha}$.
+
+### A.8 Connection to the Mathis formula
+
+For a persistent TCP flow with packet loss probability $p$ and round trip time $R$, the Mathis formula gives $M = K/(R\sqrt{p})$ with $K = \sqrt{3/2}$ for periodic losses. In our model $c = 1/R^2$ and $\alpha = p$, so our formula for random losses gives:
+$$E_\pi[X] = \frac{1}{R\sqrt{p}}\cdot\sqrt{\frac{2}{\pi}}\cdot\frac{\Pi_\infty(2)}{\Pi_\infty(1)} \approx \frac{1.286}{R\sqrt{p}}$$
+
+which has the same $1/(R\sqrt{p})$ structure as the Mathis formula, with the constant determined by the stochastic loss process.
 
 ---
 
@@ -187,4 +271,5 @@ The exact value of $E_\pi[X]$ requires the Mellin transform (Baccelli et al., 20
 - S. P. Meyn, R. L. Tweedie. *Stability of Markovian processes III: Foster–Lyapunov criteria for continuous-time processes.* Adv. Appl. Prob. **25**(3):518–548, 1993.
 - F. Dufour, O. L. V. Costa. *Stability of piecewise deterministic Markov processes.* SIAM J. Control Optim. **37**(5):1483–1502, 1999.
 - A. Durmus, A. Guillin, P. Monmarché. *Piecewise deterministic Markov processes and their invariant measures.* Ann. Inst. H. Poincaré **57**(3), 2021.
-- F. Baccelli, D. McDonald, J. Reynier. *A mean-field model for multiple TCP connections through a buffer implementing RED.* Performance Evaluation **49**(1–4):77–97, 2002.
+- F. Baccelli, D. R. McDonald. *A stochastic model for the throughput of non-persistent TCP flows.* Proceedings of Valuetools'06, Pisa, Italy, October 2006. ACM.
+- M. Mathis, J. Semke, J. Mahdavi, T. Ott. *The macroscopic behavior of the TCP congestion avoidance algorithm.* ACM SIGCOMM Computer Communication Review **27**(3):67–82, 1997.
